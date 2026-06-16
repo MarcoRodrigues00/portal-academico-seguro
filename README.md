@@ -1,25 +1,9 @@
-# Portal Acadêmico Seguro
+# 🔐 Portal Acadêmico Seguro (PAS)
 
-Projeto acadêmico com foco em aplicação web segura para ambiente segmentado.
+> A secure academic portal built defense-first and validated under real, cross-team attacks.
+> Portal acadêmico seguro, construído com foco em defesa e validado sob ataques reais entre equipes.
 
-## Estrutura inicial
-
-- `backend`: API Node.js + Express + TypeScript + Prisma
-- `frontend`: React + Vite + TypeScript
-- `infra`: arquivos de apoio para banco e infraestrutura local
-
-## Objetivo atual
-
-Construir um MVP funcional e seguro com:
-
-- autenticação
-- cursos públicos
-- dashboard
-- requerimentos
-- PostgreSQL
-- boas práticas de segurança
-
-## Observação
-
-O desenvolvimento principal será feito nesta VM local.
-A publicação e validação final serão feitas no host da faculdade.
+![Backend](https://img.shields.io/badge/backend-Node.js%20%C2%B7%20Express%20%C2%B7%20TypeScript-3178c6?logo=typescript&logoColor=white)
+![Frontend](https://img.shields.io/badge/frontend-React%20%C2%B7%20Vite-61dafb?logo=react&logoColor=black)
+![Auth](https://img.shields.io/badge/auth-Keycloak%20%C2%B7%20MFA%2FTOTP-blue)
+![WAF](https://img.shields.io/badge/edge-Nginx%
