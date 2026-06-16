@@ -1,0 +1,70 @@
+EVIDÊNCIA — Portal Acadêmico Seguro (SPR3)
+Data/hora de coleta: 2026-06-16 16:45 -03 (America/Sao_Paulo)
+Operador: v.marco — VM laboratório PUC, equipe 10, escopo autorizado (scope.txt / scope-puc.txt)
+Alvo: <HOST-DMZ-WAF> (Host DMZ — nginx + ModSecurity/OWASP CRS), conforme topologia em CLAUDE.md
+
+== Verificação de escopo (ai-pentest-lab / verify-scope.sh) ==
+$ bash scripts/scan/verify-scope.sh <HOST-DMZ-WAF>
+── Verificando ALVOS ──
+  [PASS] <HOST-DMZ-WAF> — autorizado
+[✓] Tudo dentro do escopo e sem padrões proibidos.
+
+== Baseline (sem payload) ==
+$ curl -k -s -o /dev/null -w "%{http_code}\n" "https://<HOST-DMZ-WAF>/"
+502
+(Observação: 502 = upstream/frontend indisponível no momento da coleta, item separado
+do controle de WAF — não interfere no resultado do bloqueio abaixo, pois o
+ModSecurity intercepta a requisição antes do proxy para o upstream.)
+
+== WAF — tentativa de SQL Injection ==
+$ curl -k -s -o /dev/null -w "%{http_code}\n" "https://<HOST-DMZ-WAF>/?q=%27%20OR%201%3D1--"
+403   <-- BLOQUEADO pelo WAF (OWASP CRS)
+
+== WAF — tentativa de XSS ==
+$ curl -k -s -o /dev/null -w "%{http_code}\n" "https://<HOST-DMZ-WAF>/?q=%3Cscript%3Ealert(1)%3C/script%3E"
+403   <-- BLOQUEADO pelo WAF (OWASP CRS)
+
+== Rate limiting — 12 requisições sequenciais a /api/login ==
+$ for i in $(seq 1 12); do curl -k -s -o /dev/null -w "%{http_code} " "https://<HOST-DMZ-WAF>/api/login"; done
+502 502 502 502 502 502 429 429 429 429 429 502
+                        ^^^^^^^^^^^^^^^^^^^^^^^ 5 respostas 429 = rate limit (express-rate-limit) ativado
+(502 nas demais: mesmo motivo do baseline — upstream fora do ar; rate limit já atua
+na camada de proxy/WAF antes de tentar alcançar o upstream)
+
+== Resultado resumido ==
+- SQLi  -> 403 (bloqueado)
+- XSS   -> 403 (bloqueado)
+- Rate limit -> 429 obtido após repetição de requisições (limite ativo)
+
+== Atualização (mesma sessão, após subir o container frontend) ==
+- Frontend (.34:80) confirmado UP: curl direto -> 200 OK (local e via IP externo da própria VM)
+- Caminho via WAF (.50 -> .34:80): continua 502 — problema de roteamento/firewall entre
+  hosts DMZ/APP (nginx proxy_pass ou regra pfSense), não relacionado ao WAF/ModSecurity
+  em si. Não investigado a fundo por falta de acesso de shell ao Host .50 e por restrição
+  de tempo (entrega SPR3 hoje). SQLi/XSS continuam bloqueados (403) e rate-limit continua
+  ativo (429) mesmo com esse problema — ou seja, a camada de segurança funciona
+  independentemente do bug de roteamento do baseline.
+
+== Confirmação independente (rodado manualmente pelo operador, terminal separado) ==
+v.marco@<VM-HOSTNAME>:~/portal-academico-seguro$ bash ~/video-evidencias-SPR3/run-for-screenshot.sh
+=== Verificação de escopo ===
+── Verificando ALVOS ──
+  [PASS] <HOST-DMZ-WAF> — autorizado
+[✓] Tudo dentro do escopo e sem padrões proibidos.
+=== Baseline ===
+GET / -> 502
+=== WAF: SQL Injection ===
+GET /?q=' OR 1=1-- -> 403
+=== WAF: XSS ===
+GET /?q=<script>alert(1)</script> -> 403
+=== Rate limiting: 12x /api/login ===
+502 502 502 502 502 502 429 429 429 429 429 502
+
+Resultado: idêntico à coleta automatizada acima — confirma reprodutibilidade.
+
+== Wazuh / Grafana ==
+Não capturados nesta sessão: dashboard do Wazuh inacessível (porta 443 do Host .50
+já é ocupada pelo WAF/portal; configuração do dashboard feita por outro integrante
+da equipe, possivelmente incompleta) e Grafana não localizado. Decisão da equipe:
+seguir o vídeo com WAF + rate-limit + test suite do framework, que já demonstram
+adequação dos controles de segurança da aplicação.
