@@ -1,0 +1,150 @@
+body {
+  background:
+    linear-gradient(rgba(8, 12, 15, 0.92), rgba(8, 12, 15, 0.97)),
+    linear-gradient(90deg, rgba(57,255,133,0.05) 1px, transparent 1px),
+    linear-gradient(rgba(57,255,133,0.05) 1px, transparent 1px);
+  background-size: auto, 48px 48px, 48px 48px;
+  background-color: #080c0f;
+  color: #c8d8e0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.login-pf-page,
+.login-pf-page .card-pf,
+.login-pf body {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.login-pf-page {
+  padding-top: 40px;
+}
+
+.card-pf {
+  max-width: 470px;
+  margin: 70px auto;
+  background: rgba(13, 19, 24, 0.94) !important;
+  border: 1px solid #1e2d38;
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 1px rgba(57,255,133,0.05),
+    0 0 24px rgba(57,255,133,0.08);
+  padding: 28px 34px 30px;
+}
+
+#kc-header {
+  margin-bottom: 18px;
+}
+
+#kc-header-wrapper {
+  font-size: 0;
+  text-align: center;
+}
+
+#kc-header-wrapper::before {
+  content: "PORTAL.AS";
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #d8e4ea;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(57,255,133,0.22);
+}
+
+#kc-header-wrapper::after {
+  content: "PORTAL ACADÊMICO SEGURO";
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: #537084;
+}
+
+#kc-page-title,
+h1#kc-page-title {
+  color: #d8e4ea !important;
+  text-align: center;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  margin-bottom: 18px !important;
+}
+
+hr,
+.login-pf-page .login-pf-signup,
+#kc-info-wrapper {
+  display: none !important;
+}
+
+.form-group,
+.pf-c-form__group {
+  margin-bottom: 16px !important;
+}
+
+label,
+.pf-c-form__label-text,
+#kc-form-options,
+#kc-attempted-username,
+.pf-c-form-control::placeholder,
+input::placeholder {
+  color: #6f8a9d !important;
+  font-size: 12px !important;
+}
+
+.pf-c-form-control,
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  background: #081018 !important;
+  border: 1px solid #1f3340 !important;
+  color: #d8e4ea !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  min-height: 42px;
+}
+
+.pf-c-form-control:focus,
+input:focus {
+  border-color: #39ff85 !important;
+  box-shadow: 0 0 0 2px rgba(57,255,133,0.12) !important;
+}
+
+#kc-login,
+input[type="submit"],
+button[type="submit"] {
+  background: #39ff85 !important;
+  border: none !important;
+  color: #04110a !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  min-height: 44px;
+  box-shadow: 0 0 18px rgba(57,255,133,0.2);
+}
+
+#kc-login:hover,
+input[type="submit"]:hover,
+button[type="submit"]:hover {
+  filter: brightness(1.05);
+}
+
+a {
+  color: #39ff85 !important;
+}
+
+.alert-error,
+.pf-m-danger,
+.alert-danger {
+  border-radius: 10px !important;
+  background: rgba(127, 29, 29, 0.2) !important;
+  border: 1px solid rgba(248, 113, 113, 0.25) !important;
+  color: #fca5a5 !important;
+}
+
+.pf-c-button.pf-m-control,
+button[aria-label*="password"],
+button[aria-label*="Password"] {
+  background: #081018 !important;
+  border: 1px solid #1f3340 !important;
+  color: #d8e4ea !important;
+}

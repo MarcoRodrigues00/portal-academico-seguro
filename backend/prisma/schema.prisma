@@ -1,0 +1,403 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ──────────────────────────────────────────────────────────────────
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum MaterialType {
+  PDF
+  CODE
+  REFERENCE
+  OTHER
+}
+
+enum BadgeType {
+  COURSE_COMPLETED  // completou 100% dos módulos
+  PERFECT_SCORE     // acertou todas as questões de um curso
+  FIRST_ENROLLMENT  // primeira matrícula realizada
+  FAST_LEARNER      // completou um curso em até 7 dias da matrícula
+}
+
+enum SubjectContentType {
+  PDF
+  SLIDE
+  VIDEO
+  LINK
+}
+
+// ── User ───────────────────────────────────────────────────────────────────
+
+model User {
+  id         String   @id @default(uuid())
+  keycloakId String   @unique
+  name       String
+  email      String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  requests          Request[]
+  enrollments       CourseEnrollment[]
+  questionAnswers   QuestionAnswer[]
+  discussionPosts   CourseDiscussionPost[] @relation("DiscussionAuthor")
+  discussionAnswers CourseDiscussionPost[] @relation("DiscussionAnsweredBy")
+  certificates      Certificate[]
+  badges            UserBadge[]
+
+  // Domínio acadêmico formal
+  subjectEnrollments SubjectEnrollment[]
+  attendances        Attendance[]
+  grades             Grade[]
+  subjectContents    SubjectContent[]
+  taughtSubjects     Subject[]
+
+  @@map("users")
+}
+
+// ── Request ────────────────────────────────────────────────────────────────
+
+model Request {
+  id          String        @id @default(uuid())
+  userId      String
+  title       String
+  description String
+  status      RequestStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("requests")
+}
+
+// ── Course ─────────────────────────────────────────────────────────────────
+
+model Course {
+  id             String      @id @default(uuid())
+  title          String
+  description    String
+  isPublic       Boolean     @default(true)
+  thumbnail      String?
+  level          CourseLevel @default(BEGINNER)
+  estimatedHours Float?
+  instructorName String?
+  instructorId   String?     // keycloakId do professor responsável
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  modules         CourseModule[]
+  materials       CourseMaterial[]
+  questions       CourseQuestion[]
+  discussionPosts CourseDiscussionPost[]
+  enrollments     CourseEnrollment[]
+  certificates    Certificate[]
+  badges          UserBadge[]
+
+  @@map("courses")
+}
+
+// ── CourseModule ───────────────────────────────────────────────────────────
+
+model CourseModule {
+  id          String   @id @default(uuid())
+  courseId    String
+  title       String
+  description String?
+  order       Int
+  durationMin Int?
+  videoUrl    String?  // path no samba ou URL de embed externo
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  course    Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  materials CourseMaterial[]
+  questions CourseQuestion[]
+  progress  CourseProgress[]
+
+  @@unique([courseId, order])
+  @@map("course_modules")
+}
+
+// ── CourseMaterial ─────────────────────────────────────────────────────────
+
+model CourseMaterial {
+  id        String       @id @default(uuid())
+  courseId  String
+  moduleId  String?      // opcional: material pode ser do curso todo
+  title     String
+  type      MaterialType
+  filePath  String       // path relativo no samba: courses/{courseId}/{filename}
+  isPublic  Boolean      @default(false)
+  sizeBytes BigInt?
+  createdAt DateTime     @default(now())
+
+  course Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  module CourseModule? @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+
+  @@map("course_materials")
+}
+
+// ── CourseQuestion ─────────────────────────────────────────────────────────
+
+model CourseQuestion {
+  id            String   @id @default(uuid())
+  courseId      String
+  moduleId      String?  // opcional: questão pode ser do curso todo
+  text          String
+  options       Json     // string[] — as alternativas
+  correctAnswer Int      // índice (0-based) da alternativa correta
+  explanation   String?
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  course  Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  module  CourseModule?  @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  answers QuestionAnswer[]
+
+  @@map("course_questions")
+}
+
+// ── QuestionAnswer ─────────────────────────────────────────────────────────
+
+model QuestionAnswer {
+  id             String   @id @default(uuid())
+  userId         String
+  questionId     String
+  selectedOption Int      // índice (0-based) escolhido pelo aluno
+  isCorrect      Boolean
+  answeredAt     DateTime @default(now())
+
+  user     User           @relation(fields: [userId], references: [id])
+  question CourseQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+  @@map("question_answers")
+}
+
+// ── CourseDiscussionPost ───────────────────────────────────────────────────
+
+model CourseDiscussionPost {
+  id           String   @id @default(uuid())
+  courseId     String
+  question     String
+  authorName   String   // nome exibido — preenchido do token se autenticado
+  authorUserId String?  // User.id se o autor estava autenticado
+  answer       String?
+  answeredById String?  // User.id de quem respondeu (professor ou admin)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  course     Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  author     User?  @relation("DiscussionAuthor",     fields: [authorUserId], references: [id])
+  answeredBy User?  @relation("DiscussionAnsweredBy", fields: [answeredById], references: [id])
+
+  @@map("course_discussion_posts")
+}
+
+// ── CourseEnrollment ───────────────────────────────────────────────────────
+
+model CourseEnrollment {
+  id          String    @id @default(uuid())
+  userId      String
+  courseId    String
+  enrolledAt  DateTime  @default(now())
+  completedAt DateTime?
+
+  user     User             @relation(fields: [userId], references: [id])
+  course   Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress CourseProgress[]
+
+  @@unique([userId, courseId])
+  @@map("course_enrollments")
+}
+
+// ── CourseProgress ─────────────────────────────────────────────────────────
+
+model CourseProgress {
+  id           String   @id @default(uuid())
+  enrollmentId String
+  moduleId     String
+  completedAt  DateTime @default(now())
+
+  enrollment CourseEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  module     CourseModule     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, moduleId])
+  @@map("course_progress")
+}
+
+// ── Certificate ────────────────────────────────────────────────────────────
+
+model Certificate {
+  id       String   @id @default(uuid())
+  userId   String
+  courseId String
+  code     String   @unique @default(cuid()) // código público único do certificado
+  issuedAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
+
+  @@unique([userId, courseId])
+  @@map("certificates")
+}
+
+// ── UserBadge ──────────────────────────────────────────────────────────────
+
+model UserBadge {
+  id       String    @id @default(uuid())
+  userId   String
+  courseId String?   // contexto: badge relacionado a um curso específico
+  type     BadgeType
+  earnedAt DateTime  @default(now())
+
+  user   User    @relation(fields: [userId], references: [id])
+  course Course? @relation(fields: [courseId], references: [id])
+
+  @@map("user_badges")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Domínio acadêmico formal
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Semester ───────────────────────────────────────────────────────────────
+
+model Semester {
+  id        String   @id @default(uuid())
+  name      String   @unique // ex: "2026.1"
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  subjects Subject[]
+
+  @@map("semesters")
+}
+
+// ── Subject ────────────────────────────────────────────────────────────────
+
+model Subject {
+  id              String   @id @default(uuid())
+  semesterId      String
+  code            String   // ex: "CC301" — único por semestre
+  name            String
+  professorUserId String?  // User.id do professor se registrado no sistema
+  professorName   String?  // nome de exibição (fallback se não registrado)
+  credits         Int
+  schedule        String?  // ex: "Ter/Qui · 19h–21h"
+  room            String?  // ex: "Lab 3"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  semester    Semester            @relation(fields: [semesterId], references: [id])
+  professor   User?               @relation(fields: [professorUserId], references: [id])
+  enrollments SubjectEnrollment[]
+  lessons     Lesson[]
+  grades      Grade[]
+  contents    SubjectContent[]
+
+  @@unique([semesterId, code])
+  @@map("subjects")
+}
+
+// ── SubjectEnrollment ──────────────────────────────────────────────────────
+
+model SubjectEnrollment {
+  id         String   @id @default(uuid())
+  userId     String
+  subjectId  String
+  enrolledAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, subjectId])
+  @@map("subject_enrollments")
+}
+
+// ── Lesson ─────────────────────────────────────────────────────────────────
+
+model Lesson {
+  id          String   @id @default(uuid())
+  subjectId   String
+  title       String
+  date        DateTime
+  description String?
+  createdAt   DateTime @default(now())
+
+  subject     Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  attendances Attendance[]
+
+  @@map("lessons")
+}
+
+// ── Attendance ─────────────────────────────────────────────────────────────
+
+model Attendance {
+  id         String   @id @default(uuid())
+  lessonId   String
+  userId     String
+  present    Boolean
+  notes      String?  // observação opcional do professor
+  recordedAt DateTime @default(now())
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([lessonId, userId])
+  @@map("attendances")
+}
+
+// ── Grade ──────────────────────────────────────────────────────────────────
+
+model Grade {
+  id             String   @id @default(uuid())
+  userId         String
+  subjectId      String
+  assessmentName String   // ex: "N1", "N2", "Trabalho Final"
+  score          Float
+  maxScore       Float    @default(10.0)
+  recordedAt     DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, subjectId, assessmentName])
+  @@map("grades")
+}
+
+// ── SubjectContent ─────────────────────────────────────────────────────────
+
+model SubjectContent {
+  id            String             @id @default(uuid())
+  subjectId     String
+  title         String
+  type          SubjectContentType
+  filePath      String?            // path no samba: subjects/{subjectId}/{filename}
+  url           String?            // usado quando type = LINK
+  postedByUserId String
+  createdAt     DateTime           @default(now())
+
+  subject    Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  postedBy   User    @relation(fields: [postedByUserId], references: [id])
+
+  @@map("subject_contents")
+}

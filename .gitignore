@@ -1,0 +1,37 @@
+# node
+node_modules/
+**/node_modules/
+
+# build
+dist/
+build/
+coverage/
+**/dist/
+**/build/
+
+# env
+.env
+.env.*
+!.env.example
+!.env.app.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# logs
+logs/
+*.log
+
+# prisma
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+
+# editor / os
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# misc
+tmp/
+temp/
