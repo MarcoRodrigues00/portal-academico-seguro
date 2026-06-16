@@ -1,0 +1,16 @@
+# Normaliza fim de linha: LF no repositório, em qualquer SO.
+* text=auto eol=lf
+
+# Scripts shell sempre LF (explícito).
+*.sh text eol=lf
+
+# Binários (ex.: prints adicionados depois) — nunca normalizar.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.zip  binary
+*.woff  binary
+*.woff2 binary
