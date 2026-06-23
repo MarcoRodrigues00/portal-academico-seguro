@@ -79,6 +79,12 @@ In a 10-team exercise the portal faced live attacks from other teams while I tes
 Observed defenses holding: WAF returning **403** on SQLi/XSS, rate limiting hitting **429**,
 and corresponding alerts in Wazuh.
 
+Captured evidence (sanitized) lives in [`video-evidencias-SPR3/`](video-evidencias-SPR3/):
+
+- [`01-waf-rate-limit-MASCARADO.txt`](video-evidencias-SPR3/01-waf-rate-limit-MASCARADO.txt) — baseline, **SQLi → 403**, **XSS → 403** and **rate limit → 429** against the WAF host (addresses masked).
+- [`02-ai-pentest-lab-testsuite.txt`](video-evidencias-SPR3/02-ai-pentest-lab-testsuite.txt) + [`02-resumo.txt`](video-evidencias-SPR3/02-resumo.txt) — automated test suite: **232 passed / 0 failed**.
+- [`SHA256SUMS.txt`](video-evidencias-SPR3/SHA256SUMS.txt) — integrity hashes · [`run-for-screenshot.sh`](video-evidencias-SPR3/run-for-screenshot.sh) — commands to reproduce.
+
 ## 📸 Screenshots
 
 **Network topology — pfSense edge, segmented DMZ / APP / DATA**
@@ -96,4 +102,4 @@ and corresponding alerts in Wazuh.
 **Application — public courses view**
 ![Public courses](docs/screenshots/05-cursos-publicos.png)
 
-> _To add next: WAF blocking an attack (403), rate limit (429), a Wazuh alert and a Grafana dashboard._
+> WAF/rate-limit evidence (403 / 429) and the test-suite results are in [`video-evidencias-SPR3/`](video-evidencias-SPR3/). Wazuh-alert and Grafana-dashboard captures are kept in the private evidence repo (raw screenshots).
