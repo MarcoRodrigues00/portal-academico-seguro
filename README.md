@@ -81,5 +81,19 @@ and corresponding alerts in Wazuh.
 
 ## 📸 Screenshots
 
-> Add captures here: WAF blocking an attack (403), rate limit (429),
-> a Wazuh alert, and a Grafana dashboard.
+**Network topology — pfSense edge, segmented DMZ / APP / DATA**
+![Network topology](docs/screenshots/01-topology.png)
+
+**Login with MFA — Keycloak SSO + TOTP**
+![Login with MFA](docs/screenshots/02-login-mfa.png)
+
+**Keycloak — realm, roles and MFA configuration**
+![Keycloak realm](docs/screenshots/03-keycloak-mfa.png)
+
+**Application — authenticated dashboard**
+![Dashboard](docs/screenshots/04-dashboard.png)
+
+**Application — public courses view**
+![Public courses](docs/screenshots/05-cursos-publicos.png)
+
+> _To add next: WAF blocking an attack (403), rate limit (429), a Wazuh alert and a Grafana dashboard._
