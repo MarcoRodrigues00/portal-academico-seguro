@@ -3,3 +3,6 @@ dist
 .env
 .env.local
 .DS_Store
+
+# TypeScript build cache
+*.tsbuildinfo
