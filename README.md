@@ -1,7 +1,7 @@
 # 🔐 Portal Acadêmico Seguro (PAS)
 
 > A secure academic portal taken through the **full security lifecycle**: secure development →
-> blue-team defense & monitoring → red-team pentest (defending our own app under live attack
+> blue-team defense & monitoring → red-team pentest (defending my own app under live attack
 > from other teams, and assessing theirs).
 > Portal acadêmico seguro construído do **desenvolvimento seguro** à **defesa (blue team)** e ao **pentest**.
 
@@ -18,7 +18,7 @@
 
 A web portal for students, professors and admins (grades, enrollment proofs, requests,
 public courses). It was built **security-first** and then validated as a complete exercise:
-we hardened and monitored it as a **blue team**, and in a **10-team red-team round** we both
+I hardened and monitored it as a **blue team**, and in a **10-team red-team round** I both
 **defended it under live attack** and **assessed the other teams' authorized hosts**.
 
 The project is documented in three phases below.
@@ -86,7 +86,7 @@ Kali ─ pentest/validation only
 
 In the offensive round each team attacked the others' authorized hosts while defending its own.
 
-**Defending our app (blue side).** Under live attacks the controls held:
+**Defending my app (blue side).** Under live attacks the controls held:
 
 - **SQLi → 403** and **XSS → 403** blocked by the ModSecurity WAF (OWASP CRS),
 - **rate limiting → 429** under request floods,
